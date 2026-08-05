@@ -1,0 +1,105 @@
+// prisma/schema.prisma — LRM Performance Improvement Tracker
+// App-owned tables (human state) + a mirror of the synced roster/metrics.
+// The sync job writes ONLY Lrm + LrmDailyMetric (+ Cycle target/tenure refresh).
+// It must never write PlanItemState / CycleDecision / ClusterSetting.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AppUser {
+  id        String          @id @default(cuid())
+  email     String          @unique // store normalized: homes.solarsquare.in -> solarsquare.in
+  name      String?
+  role      String          @default("TL") // TL | ZSM | ADMIN
+  createdAt DateTime        @default(now())
+  planItems PlanItemState[]
+  decisions CycleDecision[]
+}
+
+model Lrm {
+  id         String           @id // normalized email is a fine stable id
+  email      String           @unique
+  name       String
+  tl         String?
+  zsm        String?
+  city       String?
+  cluster    String?
+  tenureDays Int?
+  doj        DateTime?
+  cycles     Cycle[]
+  metrics    LrmDailyMetric[]
+  updatedAt  DateTime         @updatedAt
+}
+
+model LrmDailyMetric {
+  id            String   @id @default(cuid())
+  lrm           Lrm      @relation(fields: [lrmId], references: [id])
+  lrmId         String
+  date          DateTime @db.Date
+  mdDd          Float    @default(0) // meetings done + dev done that day
+  mdDdPerDay    Float?               // rolling MD+DD/day if the source gives it pre-averaged
+  target        Int?                 // MD+DD Target (from the sheet)
+  oal           Int?                 // Originally Assigned Leads
+  cal           Int?                 // Currently Assigned Leads == "live leads"
+  leadScore     Float?               // Avg lead Score
+  productiveHrs Float?               // parsed from the Productive Hour duration
+  bqlToMd       Float?               // BQL -> meeting-done %, if sourced
+
+  @@unique([lrmId, date])
+}
+
+model Cycle {
+  id          String          @id @default(cuid())
+  lrm         Lrm             @relation(fields: [lrmId], references: [id])
+  lrmId       String
+  startDate   DateTime
+  endDate     DateTime
+  workingDays Int
+  target      Int?
+  benchmark   Float           @default(4)
+  tenureGuard Int             @default(60)
+  planModel   String          @default("sprint") // sprint | coach
+  status      String          @default("open")   // open | closed
+  planItems   PlanItemState[]
+  decision    CycleDecision?
+}
+
+model PlanItemState {
+  id       String    @id @default(cuid())
+  cycle    Cycle     @relation(fields: [cycleId], references: [id])
+  cycleId  String
+  model    String // sprint | coach
+  phase    String // e.g. "Week 1 — Reset" / "Diagnose"
+  itemKey  String // stable a..l key from metrics.ts
+  done     Boolean   @default(false)
+  doneBy   AppUser?  @relation(fields: [doneById], references: [id])
+  doneById String?
+  doneAt   DateTime?
+
+  @@unique([cycleId, model, phase, itemKey])
+}
+
+model CycleDecision {
+  id          String   @id @default(cuid())
+  cycle       Cycle    @relation(fields: [cycleId], references: [id])
+  cycleId     String   @unique
+  outcome     String // exit | continue | reallocate | pip
+  note        String?
+  decidedBy   AppUser  @relation(fields: [decidedById], references: [id])
+  decidedById String
+  decidedAt   DateTime @default(now())
+}
+
+model ClusterSetting {
+  id          String @id @default(cuid())
+  cluster     String @unique
+  benchmark   Float  @default(4)
+  tenureGuard Int    @default(60)
+  planModel   String @default("sprint")
+}
