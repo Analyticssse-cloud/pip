@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-7f8e388f-195b-4dc8-87b5-15d569fd8905/styles.css">
+<script src="_ds/industry-7f8e388f-195b-4dc8-87b5-15d569fd8905/_ds_bundle.js"></script>
+<style>
+  body { margin: 0; }
+  a { color: var(--color-accent); }
+  a:hover { color: var(--color-accent-700); }
+  input[type="checkbox"] { accent-color: var(--color-accent); width: 15px; height: 15px; }
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);padding:0 0 64px">
+
+  <div style="display:flex;align-items:center;gap:20px;padding:16px 32px;border-bottom:1px solid var(--color-divider)">
+    <div style="font-family:var(--font-heading);font-weight:600;font-size:19px;letter-spacing:-0.01em;margin-right:auto">
+      LRM Performance Improvement Tracker
+      <span style="display:block;font-family:var(--font-body);font-weight:400;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent);margin-top:2px">Pune Cluster · TL Akshay Shrivant · Daily refresh from Metabase</span>
+    </div>
+    <div style="display:flex;gap:2px;border:1px solid var(--color-divider)">
+      <button class="btn" style="border:0;background:{{ tabRosterBg }};color:{{ tabRosterFg }}" onClick="{{ goRoster }}">Watchlist</button>
+      <button class="btn" style="border:0;border-left:1px solid var(--color-divider);background:{{ tabPlanBg }};color:{{ tabPlanFg }}" onClick="{{ goPlan }}">LRM plan</button>
+      <button class="btn" style="border:0;border-left:1px solid var(--color-divider);background:{{ tabTrendBg }};color:{{ tabTrendFg }}" onClick="{{ goTrend }}">Trend</button>
+    </div>
+    <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent);text-align:right;line-height:1.4">
+      Cycle 08 Aug 2026<br>Day 26 of 26 · D-1 data
+    </div>
+  </div>
+
+  <sc-if value="{{ isRoster }}" hint-placeholder-val="{{ true }}">
+  <div data-screen-label="Watchlist" style="padding:28px 32px;display:flex;flex-direction:column;gap:28px">
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <div class="blueprint" style="padding:16px 18px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">On the tracker</div>
+        <div style="font-family:var(--font-heading);font-weight:600;font-size:44px;line-height:1;margin-top:6px">{{ kpiWatch }}</div>
+        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-top:4px">of 10 LRMs below 4 MD+DD/day</div>
+      </div>
+      <div class="blueprint" style="padding:16px 18px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">Team average</div>
+        <div style="font-family:var(--font-heading);font-weight:600;font-size:44px;line-height:1;margin-top:6px">{{ kpiAvg }}</div>
+        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-top:4px">MD+DD per day · benchmark {{ benchLabel }}</div>
+      </div>
+      <div class="blueprint" style="padding:16px 18px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">Moving up</div>
+        <div style="font-family:var(--font-heading);font-weight:600;font-size:44px;line-height:1;margin-top:6px">{{ kpiImproving }}</div>
+        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-top:4px">tracked LRMs improved week on week</div>
+      </div>
+      <div class="blueprint" style="padding:16px 18px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">Needs a decision</div>
+        <div style="font-family:var(--font-heading);font-weight:600;font-size:44px;line-height:1;margin-top:6px">{{ kpiDecide }}</div>
+        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-top:4px">sprint day 26 reached — close the loop</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px">
+        <h4 style="margin:0">Where the team sits</h4>
+        <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">MD+DD per working day · the band decides the action, tenure under {{ guardLabel }} days is coached not PIP'd</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:20px">
+        <sc-for list="{{ buckets }}" as="b" hint-placeholder-count="6">
+          <div class="blueprint" style="padding:14px 14px 12px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-size:11px;letter-spacing:0.04em;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ b.label }}</div>
+            <div style="display:flex;align-items:flex-end;gap:8px;margin-top:8px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:32px;line-height:1">{{ b.count }}</div>
+              <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 50%, transparent);padding-bottom:5px">LRMs</div>
+            </div>
+            <div style="height:4px;background:var(--color-neutral-300);margin:10px 0 10px">
+              <div style="height:4px;width:{{ b.w }};background:var(--color-accent)"></div>
+            </div>
+            <span class="tag" style="background:{{ b.bg }};color:{{ b.fg }}">{{ b.action }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+        <h4 style="margin:0">Roster</h4>
+        <div class="seg" style="margin-left:auto">
+          <label class="seg-opt"><input type="radio" name="rosterfilter" checked="{{ filterWatch }}" onChange="{{ setFilterWatch }}"><span>On the tracker</span></label>
+          <label class="seg-opt"><input type="radio" name="rosterfilter" checked="{{ filterAll }}" onChange="{{ setFilterAll }}"><span>Full team</span></label>
+        </div>
+      </div>
+      <div class="blueprint" style="padding:8px 14px 14px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>LRM</th>
+              <th>Tenure</th>
+              <th style="text-align:right">Target</th>
+              <th style="text-align:right">Achieved</th>
+              <th style="text-align:right">MD+DD / day</th>
+              <th style="text-align:right">Wk on wk</th>
+              <th style="text-align:right">Live leads</th>
+              <th style="text-align:right">BQL&gt;MD</th>
+              <th style="text-align:right">Prod. hrs</th>
+              <th>What is holding them back</th>
+              <th>Action</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+              <tr>
+                <td style="padding-top:10px;padding-bottom:10px">
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:16px">{{ r.name }}</div>
+                  <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 50%, transparent)">{{ r.email }}</div>
+                </td>
+                <td style="font-variant-numeric:tabular-nums">{{ r.tenureLabel }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.target }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.ach }} <span style="color:color-mix(in srgb, var(--color-text) 45%, transparent);font-size:12px">{{ r.pctAch }}</span></td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700">{{ r.avg }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;color:{{ r.deltaFg }}">{{ r.deltaLabel }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.cal }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.conv }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.prod }}</td>
+                <td style="font-size:13px;max-width:250px">{{ r.causeShort }}</td>
+                <td><span class="tag" style="background:{{ r.bandBg }};color:{{ r.bandFg }}">{{ r.band }}</span></td>
+                <td style="text-align:right"><button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onClick="{{ r.open }}">Open plan</button></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-top:10px;max-width:760px;text-wrap:pretty">
+        Bands follow the standing rule: 7–10 MD+DD/day observe, 4–7 and 2–4 train, under 2 goes to PIP or exit. Anyone inside their first {{ guardLabel }} days stays on training regardless of band, and an LRM with no live leads is an allocation fix, not a performance case.
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isPlan }}">
+  <div data-screen-label="LRM plan" style="padding:28px 32px;display:grid;grid-template-columns:340px 1fr;gap:28px;align-items:start">
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="blueprint" style="padding:18px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">On the tracker</div>
+        <div style="font-family:var(--font-heading);font-weight:600;font-size:30px;line-height:1.1;margin-top:6px">{{ sel.name }}</div>
+        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ sel.email }}</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <span class="tag" style="background:{{ sel.bandBg }};color:{{ sel.bandFg }}">{{ sel.band }}</span>
+          <span class="tag tag-neutral">{{ sel.trajectory }}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin-top:16px;padding-top:14px;border-top:1px solid var(--color-divider)">
+          <div style="color:color-mix(in srgb, var(--color-text) 55%, transparent)">City</div><div>{{ sel.city }}</div>
+          <div style="color:color-mix(in srgb, var(--color-text) 55%, transparent)">TL</div><div>{{ sel.tl }}</div>
+          <div style="color:color-mix(in srgb, var(--color-text) 55%, transparent)">ZSM</div><div>{{ sel.zsm }}</div>
+          <div style="color:color-mix(in srgb, var(--color-text) 55%, transparent)">Tenure</div><div>{{ sel.tenureLabel }}</div>
+          <div style="color:color-mix(in srgb, var(--color-text) 55%, transparent)">Cycle</div><div>{{ sel.ach }} of {{ sel.target }} MD+DD · {{ sel.pctAch }}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Switch LRM</div>
+        <sc-for list="{{ picker }}" as="p" hint-placeholder-count="6">
+          <button class="btn" style="justify-content:space-between;width:100%;border-color:{{ p.border }};background:{{ p.bg }};color:{{ p.fg }};font-size:13px" onClick="{{ p.open }}">
+            <span>{{ p.name }}</span><span style="font-variant-numeric:tabular-nums;opacity:0.7">{{ p.avg }}/day</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:28px">
+
+      <div class="blueprint" style="padding:18px 20px;background:var(--color-accent-900);color:var(--color-bg);border-color:var(--color-accent-900)">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.75">The one thing to fix</div>
+        <div style="font-family:var(--font-heading);font-weight:600;font-size:26px;line-height:1.15;margin-top:6px">{{ sel.causeTitle }}</div>
+        <p style="margin:8px 0 0;font-size:14px;opacity:0.85;max-width:70ch;text-wrap:pretty">{{ sel.causeBody }}</p>
+      </div>
+
+      <div>
+        <h4 style="margin:0 0 14px">Where they stand against the bar</h4>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+          <sc-for list="{{ sel.metrics }}" as="m" hint-placeholder-count="4">
+            <div class="blueprint" style="padding:14px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ m.label }}</div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1">{{ m.value }}</div>
+                <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 50%, transparent)">vs {{ m.bench }}</div>
+              </div>
+              <div style="height:5px;background:var(--color-neutral-300);margin-top:12px">
+                <div style="height:5px;width:{{ m.w }};background:{{ m.color }}"></div>
+              </div>
+              <div style="font-size:11px;margin-top:8px;color:{{ m.color }}">{{ m.status }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div class="blueprint" style="padding:18px 20px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <h4 style="margin:0">Four weeks of daily output</h4>
+          <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">MD+DD per working day · dotted line is the {{ benchLabel }} bar</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:24px;height:130px;margin-top:18px;position:relative;padding-bottom:26px">
+          <div style="position:absolute;left:0;right:0;bottom:{{ benchLine }};border-top:1px dashed color-mix(in srgb, var(--color-text) 40%, transparent)"></div>
+          <sc-for list="{{ sel.weeks }}" as="w" hint-placeholder-count="4">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;position:relative">
+              <div style="font-size:13px;font-variant-numeric:tabular-nums;font-weight:700">{{ w.val }}</div>
+              <div style="width:100%;height:{{ w.h }};background:{{ w.color }}"></div>
+              <div style="position:absolute;bottom:-24px;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ w.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">
+          <h4 style="margin:0">The plan</h4>
+          <div class="seg">
+            <label class="seg-opt"><input type="radio" name="planmodel" checked="{{ isSprint }}" onChange="{{ setSprint }}"><span>30-day sprint · weekly gates</span></label>
+            <label class="seg-opt"><input type="radio" name="planmodel" checked="{{ isCoach }}" onChange="{{ setCoach }}"><span>Coaching track · metric-led</span></label>
+          </div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+            <div style="width:120px;height:5px;background:var(--color-neutral-300)">
+              <div style="height:5px;width:{{ planPct }};background:var(--color-accent)"></div>
+            </div>
+            <span style="font-size:12px;font-variant-numeric:tabular-nums;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ planDone }} of {{ planTotal }} done</span>
+          </div>
+        </div>
+        <p style="margin:0 0 16px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent);max-width:80ch;text-wrap:pretty">{{ planBlurb }}</p>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px">
+          <sc-for list="{{ phases }}" as="ph" hint-placeholder-count="4">
+            <div class="blueprint" style="padding:16px 18px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:19px">{{ ph.label }}</div>
+                <span class="tag tag-accent" style="margin-left:auto">{{ ph.gate }}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:12px;font-size:11px;font-variant-numeric:tabular-nums">
+                <span style="letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent)">Exit</span>
+                <span style="text-wrap:pretty">{{ ph.exit }}</span>
+                <span style="letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent)">Now</span>
+                <span style="color:{{ ph.gateFg }};font-weight:600">{{ ph.gateNow }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+                <sc-for list="{{ ph.items }}" as="it" hint-placeholder-count="3">
+                  <div style="border-top:1px solid var(--color-divider);padding-top:10px">
+                    <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;cursor:pointer;line-height:1.45;text-wrap:pretty;color:{{ it.fg }};text-decoration:{{ it.deco }}">
+                      <input type="checkbox" checked="{{ it.done }}" onChange="{{ it.toggle }}" style="margin-top:2px;flex:none">
+                      <span>{{ it.text }}</span>
+                    </label>
+                    <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:8px 0 0 25px;font-size:11px;font-variant-numeric:tabular-nums">
+                      <span style="letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 45%, transparent)">Target</span>
+                      <span style="font-weight:600">{{ it.target }}</span>
+                      <span style="letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 45%, transparent)">Now</span>
+                      <span style="color:{{ it.nowFg }}">{{ it.now }}</span>
+                      <span style="letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 45%, transparent)">Measured</span>
+                      <span style="color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ it.source }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:11px;margin-top:14px;padding-top:10px;border-top:1px solid var(--color-divider);color:color-mix(in srgb, var(--color-text) 50%, transparent)">Owner: {{ ph.owner }} · Evidence: {{ ph.evidence }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div class="blueprint" style="padding:18px 20px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <h4 style="margin:0 0 4px">Close the cycle</h4>
+        <p style="margin:0 0 14px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent);max-width:80ch;text-wrap:pretty">Day 26 of 26. Record the call so the next reviewer sees why — and so an LRM who has pulled it back gets taken off the list.</p>
+        <div class="field" style="margin-bottom:14px">
+          <label>Coaching note for this cycle</label>
+          <textarea class="input" placeholder="What changed, what you saw in the shadowed calls, what you are asking for next." value="{{ note }}" onChange="{{ setNote }}"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary" onClick="{{ decExit }}">Exit the watchlist</button>
+          <button class="btn btn-secondary" onClick="{{ decContinue }}">Run one more cycle</button>
+          <button class="btn btn-secondary" onClick="{{ decLeads }}">Change lead allocation</button>
+          <button class="btn btn-secondary" onClick="{{ decPip }}">Escalate to formal PIP</button>
+          <span style="margin-left:auto;font-size:12px;color:var(--color-accent-700)">{{ decisionLabel }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isTrend }}">
+  <div data-screen-label="Trend" style="padding:28px 32px;display:flex;flex-direction:column;gap:24px">
+    <div>
+      <h4 style="margin:0 0 4px">Is the plan working?</h4>
+      <p style="margin:0;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent);max-width:80ch;text-wrap:pretty">Weekly average MD+DD per day for everyone on the tracker, across the 30-day sprint. Direction matters more than level — a 1.9 climbing from 0.9 is a plan that is landing; a 3.1 sliding from 3.6 is not.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <sc-for list="{{ trendKpis }}" as="k" hint-placeholder-count="3">
+        <div class="blueprint" style="padding:16px 18px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">{{ k.label }}</div>
+          <div style="font-family:var(--font-heading);font-weight:600;font-size:40px;line-height:1;margin-top:6px">{{ k.value }}</div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-top:4px">{{ k.note }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div class="blueprint" style="padding:18px 20px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div style="display:grid;grid-template-columns:200px repeat(4,1fr) 130px 150px;gap:0 16px;align-items:center;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 60%, transparent);padding-bottom:10px;border-bottom:1px solid var(--color-divider)">
+        <div>LRM</div><div>Week 1</div><div>Week 2</div><div>Week 3</div><div>Week 4</div><div>Change</div><div>Read</div>
+      </div>
+      <sc-for list="{{ trendRows }}" as="t" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:200px repeat(4,1fr) 130px 150px;gap:0 16px;align-items:center;padding:12px 0;border-bottom:1px solid color-mix(in srgb, var(--color-text) 8%, transparent)">
+          <div>
+            <div style="font-family:var(--font-heading);font-weight:600;font-size:16px">{{ t.name }}</div>
+            <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 50%, transparent)">{{ t.band }}</div>
+          </div>
+          <sc-for list="{{ t.cells }}" as="c" hint-placeholder-count="4">
+            <div>
+              <div style="height:22px;background:var(--color-neutral-200);position:relative">
+                <div style="position:absolute;left:0;top:0;bottom:0;width:{{ c.w }};background:{{ c.color }}"></div>
+                <div style="position:absolute;left:8px;top:2px;font-size:12px;font-variant-numeric:tabular-nums;color:{{ c.fg }}">{{ c.val }}</div>
+              </div>
+            </div>
+          </sc-for>
+          <div style="font-size:14px;font-variant-numeric:tabular-nums;color:{{ t.deltaFg }}">{{ t.delta }}</div>
+          <div><span class="tag" style="background:{{ t.tagBg }};color:{{ t.tagFg }}">{{ t.trajectory }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;planModel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sprint&quot;,&quot;coach&quot;],&quot;default&quot;:&quot;sprint&quot;,&quot;tsType&quot;:&quot;'sprint' | 'coach'&quot;,&quot;section&quot;:&quot;Plan&quot;},&quot;benchmark&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:2,&quot;max&quot;:8,&quot;step&quot;:0.5,&quot;default&quot;:4,&quot;unit&quot;:&quot; MD+DD/day&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Thresholds&quot;},&quot;tenureGuard&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;min&quot;:0,&quot;max&quot;:120,&quot;step&quot;:15,&quot;default&quot;:60,&quot;unit&quot;:&quot; days&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Thresholds&quot;}}">
+const WD = 26;
+
+const DATA = [
+  { id:'mustaqueem.wate', city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:412, target:200, ach:285, cal:191, score:6.76, prod:6.2, conv:44, weeks:[9.8,10.4,11.2,11.9] },
+  { id:'manjunatha.r',    city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:268, target:220, ach:214, cal:164, score:6.41, prod:4.9, conv:39, weeks:[7.6,8.0,8.4,8.6] },
+  { id:'monika.s',        city:'Pimpri', tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:190, target:150, ach:173, cal:168, score:6.95, prod:7.1, conv:37, weeks:[6.1,6.4,6.9,7.1] },
+  { id:'akansha.r',       city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:154, target:180, ach:132, cal:134, score:6.26, prod:6.5, conv:33, weeks:[4.6,4.9,5.1,5.5] },
+  { id:'gaurav.jethliya', city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:96,  target:170, ach:95,  cal:124, score:6.46, prod:6.3, conv:26, weeks:[2.9,3.2,3.7,4.6] },
+  { id:'aastha.j',        city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:221, target:180, ach:87,  cal:98,  score:6.47, prod:5.1, conv:32, weeks:[3.6,3.4,3.2,3.1] },
+  { id:'bhargavi.j',      city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:78,  target:210, ach:55,  cal:96,  score:6.42, prod:6.5, conv:14, weeks:[2.6,2.2,1.9,1.6] },
+  { id:'ashmi.kiruba',    city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:96,  target:150, ach:35,  cal:19,  score:6.90, prod:4.6, conv:30, weeks:[0.9,1.2,1.5,1.9] },
+  { id:'pragati.kaltari', city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:34,  target:50,  ach:19,  cal:88,  score:4.85, prod:4.5, conv:24, weeks:[0.4,0.6,0.8,1.1] },
+  { id:'yogeswari.babu',  city:'Pune',   tl:'Akshay Shrivant', zsm:'Shivam Bhagat', tenure:210, target:0,   ach:0,   cal:0,   score:0,    prod:0,   conv:0,  weeks:[0,0,0,0] }
+];
+
+const B_SCORE = 6.3, B_PROD = 7.0, B_CAL = 100, B_CONV = 35;
+
+const CAUSES = {
+  allocation: {
+    key: 'allocation', metric: 'Live leads assigned',
+    title: 'No leads to work with',
+    short: 'Zero live leads — allocation is blocked',
+    body: 'Zero originally-assigned and zero currently-assigned leads for the whole cycle. This is not a performance case: the assignment rule is not reaching them. Unblock allocation first, then judge the output.',
+    action: 'Unblock assignment in the LRM master and backfill leads from the cluster pool',
+    fixTarget: '60 leads assigned by day 5 · 10 fresh leads/day after',
+    fixSource: 'LRM master · daily assignment report',
+    drill: 'Verify fresh leads actually land before any output target is set',
+    drillTarget: '10 new leads/day on 5 consecutive days',
+    drillSource: 'LRM master · daily assignment report'
+  },
+  pipeline: {
+    key: 'pipeline', metric: 'Live leads in hand',
+    title: 'Pipeline is starved',
+    short: 'Too few live leads to hit the number',
+    body: 'The conversion behaviour is fine — the funnel is simply too thin to produce meetings. Fix the input before asking for more output, otherwise the target is arithmetically out of reach.',
+    action: 'Raise live leads from the cluster pool and clear every untouched aged lead',
+    fixTarget: '≥ 100 live leads · 0 leads untouched > 3 days',
+    fixSource: 'LRM master · CRM aged-lead list',
+    drill: 'Daily reactivation block on aged leads',
+    drillTarget: '30 min/day · 25 aged leads touched/day',
+    drillSource: 'CRM activity log'
+  },
+  hours: {
+    key: 'hours', metric: 'Productive hours/day',
+    title: 'Not enough productive hours',
+    short: 'Productive hours well under the bar',
+    body: 'Output tracks hours almost one-to-one here. The leads and the lead quality are workable; the day is not structured, so the calling never reaches volume.',
+    action: 'Lock three fixed calling blocks a day and review the log with the TL each morning',
+    fixTarget: '≥ 7.0h productive/day · 3 blocks/day · 0 missed reviews',
+    fixSource: 'Timechamp · TL morning review sheet',
+    drill: 'Two uninterrupted calling blocks with no CRM admin inside them',
+    drillTarget: '2 × 90 min/day · ≥ 55 dials/day',
+    drillSource: 'Timechamp + Ozonetel call log'
+  },
+  conversion: {
+    key: 'conversion', metric: 'BQL → MD conversion',
+    title: 'Leads are not turning into meetings',
+    short: 'BQL to MD conversion far below the bar',
+    body: 'Enough leads, enough hours — the pitch is where it breaks. Meetings are being asked for and not landing, so the fix is call quality, not call volume.',
+    action: 'Shadow recorded calls with the TL each week and rebuild the meeting ask',
+    fixTarget: '5 calls scored/week · BQL→MD ≥ 35%',
+    fixSource: 'Call recordings · Metabase funnel',
+    drill: 'Rehearse the meeting ask on live calls with the TL listening in',
+    drillTarget: '3 live calls/day · ask made on 100% of them',
+    drillSource: 'TL call-scoring sheet'
+  },
+  quality: {
+    key: 'quality', metric: 'Average lead score',
+    title: 'Lead quality is working against them',
+    short: 'Average lead score below the cluster mix',
+    body: 'The assigned mix skews to low-score leads, so the same effort returns fewer meetings than peers get. Re-route the weakest leads before drawing a performance conclusion.',
+    action: 'Re-route leads scoring under 5.0 and rebalance the mix to the cluster average',
+    fixTarget: 'Avg score ≥ 6.30 · < 20% of book under 5.0',
+    fixSource: 'Lead scoring table',
+    drill: 'Work the highest-scored leads first, before anything else',
+    drillTarget: 'Top 20 scored leads touched before 12:00, daily',
+    drillSource: 'CRM activity log · timestamps'
+  }
+};
+
+class Component extends DCLogic {
+  state = { view:'roster', filter:'watch', selId:'ashmi.kiruba', model:null, done:{}, note:'', decision:'' };
+
+  bench() { return Number(this.props.benchmark ?? 4); }
+  guard() { return Number(this.props.tenureGuard ?? 60); }
+  model() { return this.state.model ?? (this.props.planModel ?? 'sprint'); }
+
+  nameOf(id) {
+    return id.split('.').map(p => p.replace(/\d/g,'')).map(p => p.charAt(0).toUpperCase()+p.slice(1)).join(' ');
+  }
+
+  bandOf(l, avg) {
+    if (l.cal === 0) return 'Fix allocation';
+    if (avg >= 10) return 'No action';
+    if (avg >= 7) return 'Observe';
+    if (avg >= 4) return 'Train';
+    if (l.tenure < this.guard()) return 'Train';
+    return 'PIP / exit';
+  }
+
+  bandStyle(band) {
+    if (band === 'PIP / exit') return { bg:'var(--color-accent-900)', fg:'var(--color-bg)' };
+    if (band === 'Train') return { bg:'var(--color-accent-200)', fg:'var(--color-accent-800)' };
+    if (band === 'Fix allocation') return { bg:'var(--color-accent-600)', fg:'var(--color-bg)' };
+    if (band === 'Observe') return { bg:'var(--color-neutral-200)', fg:'var(--color-neutral-800)' };
+    return { bg:'var(--color-neutral-100)', fg:'var(--color-neutral-700)' };
+  }
+
+  causeOf(l) {
+    if (l.cal === 0) return CAUSES.allocation;
+    const r = [
+      ['pipeline', l.cal / B_CAL],
+      ['hours', l.prod / B_PROD],
+      ['conversion', l.conv / B_CONV],
+      ['quality', l.score / B_SCORE]
+    ].sort((a,b) => a[1]-b[1]);
+    return CAUSES[r[0][0]];
+  }
+
+  trajOf(l) {
+    const d = l.weeks[3] - l.weeks[0];
+    if (l.cal === 0) return 'Blocked';
+    if (d >= 0.5) return 'Improving';
+    if (d <= -0.5) return 'Sliding';
+    return 'Flat';
+  }
+
+  enrich(l) {
+    const avg = l.ach / WD;
+    const band = this.bandOf(l, avg);
+    return Object.assign({}, l, {
+      name: this.nameOf(l.id),
+      email: l.id + '@solarsquare.in',
+      avg: avg,
+      avgLabel: avg.toFixed(1),
+      band: band,
+      bandBg: this.bandStyle(band).bg,
+      bandFg: this.bandStyle(band).fg,
+      cause: this.causeOf(l),
+      trajectory: this.trajOf(l),
+      tenureLabel: l.tenure + ' days',
+      pctAch: l.target ? Math.round(l.ach / l.target * 100) + '%' : '—',
+      delta: l.weeks[3] - l.weeks[2]
+    });
+  }
+
+  all() { return DATA.map(l => this.enrich(l)).sort((a,b) => a.avg - b.avg); }
+  tracked() { return this.all().filter(l => l.avg < this.bench() || l.cal === 0); }
+
+  deltaBits(d) {
+    if (Math.abs(d) < 0.05) return { label:'—', fg:'color-mix(in srgb, var(--color-text) 45%, transparent)' };
+    if (d > 0) return { label:'▲ +' + d.toFixed(1), fg:'var(--color-accent-700)' };
+    return { label:'▼ ' + d.toFixed(1), fg:'var(--color-neutral-800)' };
+  }
+
+  metricNow(l, key) {
+    const f = {
+      allocation: [l.cal, 60, String(l.cal) + ' live leads'],
+      pipeline: [l.cal, B_CAL, String(l.cal) + ' live leads'],
+      hours: [l.prod, B_PROD, l.prod.toFixed(1) + 'h/day'],
+      conversion: [l.conv, B_CONV, l.conv + '%'],
+      quality: [l.score, B_SCORE, l.score.toFixed(2) + ' avg score']
+    }[key];
+    const short = f[1] ? Math.round((1 - f[0] / f[1]) * 100) : 0;
+    return { text: f[2] + (f[0] >= f[1] ? ' · at the bar' : ' · ' + short + '% short'), ok: f[0] >= f[1] };
+  }
+
+  phases() {
+    const l = this.selected();
+    const b = this.bench();
+    const c = l.cause;
+    const muted = 'color-mix(in srgb, var(--color-text) 50%, transparent)';
+    const now = this.metricNow(l, c.key);
+    const convPct = Math.max(l.conv, 10) / 100;
+    const bqlPerDay = Math.ceil(b / convPct);
+    const leadsCycle = Math.ceil(b * WD / convPct);
+    const dayFloor = (b * 0.5).toFixed(1);
+    const wkNow = (i, gate) => ({
+      text: 'Week ' + (i + 1) + ' actual ' + l.weeks[i].toFixed(1) + '/day',
+      ok: l.weeks[i] >= gate
+    });
+    const mark = (id, text) => {
+      const key = l.id + ':' + this.model() + ':' + id;
+      const done = !!this.state.done[key];
+      return {
+        id, text, done,
+        fg: done ? 'color-mix(in srgb, var(--color-text) 45%, transparent)' : 'var(--color-text)',
+        deco: done ? 'line-through' : 'none',
+        toggle: () => this.setState(s => ({ done: Object.assign({}, s.done, { [key]: !s.done[key] }) }))
+      };
+    };
+    const item = (id, text, target, nowObj, source) => Object.assign(mark(id, text), {
+      target: target,
+      now: nowObj ? nowObj.text : 'not logged yet',
+      nowFg: nowObj ? (nowObj.ok ? 'var(--color-accent-700)' : 'var(--color-accent-900)') : muted,
+      source: source
+    });
+    const phase = (label, gate, exit, nowObj, owner, evidence, items) => ({
+      label, gate, exit,
+      gateNow: nowObj ? nowObj.text : 'not measured yet',
+      gateFg: nowObj ? (nowObj.ok ? 'var(--color-accent-700)' : 'var(--color-accent-900)') : muted,
+      owner, evidence, items
+    });
+
+    if (this.model() === 'sprint') {
+      const g = [b*0.4, b*0.6, b*0.85, b];
+      return [
+        phase('Week 1 — Reset', '≥ ' + g[0].toFixed(1) + '/day', 'Average ≥ ' + g[0].toFixed(1) + ' MD+DD/day across 5 working days', wkNow(0, g[0]), l.tl, 'Stand-up log', [
+          item('a', 'Sign the diagnosis with ' + l.tl + ' — one binding input: ' + c.metric.toLowerCase(), '1 signed sheet by day 3', null, 'Cycle file'),
+          item('b', c.action, c.fixTarget, now, c.fixSource),
+          item('c', 'Post the day plan with the day’s MD+DD number at the 9:30 stand-up', '5 of 5 working days · 0 missed', null, 'Stand-up log')
+        ]),
+        phase('Week 2 — Build the habit', '≥ ' + g[1].toFixed(1) + '/day', 'Average ≥ ' + g[1].toFixed(1) + '/day and no single day under ' + dayFloor, wkNow(1, g[1]), l.name, 'Timechamp + CRM', [
+          item('d', c.drill, c.drillTarget, null, c.drillSource),
+          item('e', 'Book the conversation volume the target needs at the current ' + l.conv + '% conversion', bqlPerDay + ' BQL conversations/day → ' + b.toFixed(1) + ' MD+DD/day', now, 'Metabase funnel'),
+          item('f', 'Peer-shadow an LRM already clearing the bar', '2 sessions/week · 45 min each', null, 'TL calendar'),
+        ]),
+        phase('Week 3 — Push volume', '≥ ' + g[2].toFixed(1) + '/day', 'Average ≥ ' + g[2].toFixed(1) + '/day on 4 of 5 working days', wkNow(2, g[2]), l.name, 'Daily MD+DD report', [
+          item('g', 'Hold the fixed calling blocks without TL prompting', '3 blocks/day · ≥ ' + B_PROD.toFixed(1) + 'h productive', this.metricNow(l, 'hours'), 'Timechamp'),
+          item('h', 'Mid-sprint check: has the binding input actually moved?', '+25% vs day 1 on ' + c.metric.toLowerCase(), now, 'Metabase · week-on-week'),
+          item('i', 'Top up the book so the target is arithmetically reachable', '≥ ' + B_CAL + ' live leads · ' + leadsCycle + ' worked in the cycle', this.metricNow(l, 'pipeline'), 'LRM master')
+        ]),
+        phase('Week 4 — Hold it', '≥ ' + g[3].toFixed(1) + '/day', 'Clear ' + g[3].toFixed(1) + ' MD+DD/day on 4 of 5 days, unsupervised', wkNow(3, g[3]), l.tl, 'Cycle close note', [
+          item('j', 'Clear the benchmark without TL intervention', g[3].toFixed(1) + ' MD+DD/day on 4 of 5 days', wkNow(3, g[3]), 'Daily MD+DD report'),
+          item('k', 'LRM writes their own read: week 1 vs week 4 on the fixed input', '1 note · 2 numbers · by day 26', null, 'Cycle file'),
+          item('l', 'Record the decision', '1 of 4 outcomes logged by day 26', null, 'This tracker')
+        ])
+      ];
+    }
+    return [
+      phase('Diagnose', 'Days 1–3', 'One binding input named, with its baseline number written down', now, l.tl, 'Signed diagnosis', [
+        item('a', 'Pull the four inputs and rank them against the bar', '4 of 4 inputs baselined by day 3', null, 'Metabase · LRM master'),
+        item('b', 'Name the binding input and its baseline: ' + c.metric.toLowerCase(), 'Baseline recorded · target ' + c.fixTarget, now, c.fixSource),
+        item('c', 'Park every other metric for the cycle', 'Exactly 1 tracked metric', null, 'Cycle file')
+      ]),
+      phase('Drill', 'Days 4–12', c.metric + ' improved ≥ 25% over the baseline', now, l.name, 'Daily drill log', [
+        item('d', c.action, c.fixTarget, now, c.fixSource),
+        item('e', c.drill, c.drillTarget, null, c.drillSource),
+        item('f', 'Log the one number daily — nothing else', '9 of 9 working days logged', null, 'Daily drill log')
+      ]),
+      phase('Shadow and correct', 'Days 13–21', c.metric + ' at ≥ 80% of the bar and MD+DD ≥ ' + (b*0.75).toFixed(1) + '/day', wkNow(2, b*0.75), l.tl, 'Call recordings', [
+        item('g', 'Calls observed by ' + l.tl + ' with feedback inside the hour', '3 calls/week · scored 1–5 · avg ≥ 3.5', null, 'TL call-scoring sheet'),
+        item('h', 'Rewrite the weak moment and rehearse it on live calls', '1 rewritten script · used on ≥ 10 calls', null, 'Call recordings'),
+        item('i', 'Escalate to the ZSM if the input has not moved', 'Trigger: < +15% by day 18', now, 'Metabase')
+      ]),
+      phase('Solo and review', 'Days 22–30', 'Hold ' + b.toFixed(1) + ' MD+DD/day for 5 unsupervised working days', wkNow(3, b), l.name, 'Cycle close note', [
+        item('j', 'Run the week unsupervised', b.toFixed(1) + ' MD+DD/day · 5 of 5 days', wkNow(3, b), 'Daily MD+DD report'),
+        item('k', 'Compare week 4 to week 1 on the fixed input only', 'Δ ' + (l.weeks[3] - l.weeks[0] >= 0 ? '+' : '') + (l.weeks[3] - l.weeks[0]).toFixed(1) + '/day vs target +' + (b - l.weeks[0] > 0 ? (b - l.weeks[0]).toFixed(1) : '0.0'), wkNow(3, b), 'Metabase'),
+        item('l', 'Record the decision with the evidence attached', '1 of 4 outcomes · 2 numbers cited', null, 'This tracker')
+      ])
+    ];
+  }
+
+  selected() {
+    const found = this.all().find(l => l.id === this.state.selId);
+    return found || this.all()[0];
+  }
+
+  renderVals() {
+    const bench = this.bench();
+    const all = this.all();
+    const tracked = this.tracked();
+    const view = this.state.view;
+    const sel = this.selected();
+    const rows = (this.state.filter === 'watch' ? tracked : all);
+
+    const tab = (name) => ({
+      bg: view === name ? 'var(--color-accent)' : 'transparent',
+      fg: view === name ? 'var(--color-bg)' : 'var(--color-text)'
+    });
+
+    const bucketDefs = [
+      ['≥ 10 MD+DD', l => l.avg >= 10, 'No action'],
+      ['7–10 MD+DD', l => l.avg >= 7 && l.avg < 10, 'Observe'],
+      ['4–7 MD+DD', l => l.avg >= 4 && l.avg < 7, 'Train'],
+      ['2–4 MD+DD', l => l.avg >= 2 && l.avg < 4, 'Train'],
+      ['0–2 MD+DD', l => l.avg > 0 && l.avg < 2, 'PIP / exit'],
+      ['0 MD+DD', l => l.avg === 0, 'PIP / exit']
+    ];
+    const buckets = bucketDefs.map(([label, fn, action]) => {
+      const count = all.filter(fn).length;
+      const st = this.bandStyle(action);
+      return { label, count, action, bg:st.bg, fg:st.fg, w: Math.round(count / all.length * 100) + '%' };
+    });
+
+    const metric = (label, value, benchVal, valLabel, benchLabel) => {
+      const ratio = benchVal ? value / benchVal : 0;
+      const ok = ratio >= 1;
+      const near = ratio >= 0.85;
+      return {
+        label, value: valLabel, bench: benchLabel,
+        w: Math.min(100, Math.round(ratio * 100)) + '%',
+        color: ok ? 'var(--color-accent-700)' : near ? 'var(--color-accent-500)' : 'var(--color-accent-900)',
+        status: ok ? 'At or above the bar' : Math.round((1 - ratio) * 100) + '% short of the bar'
+      };
+    };
+
+    const maxWeek = 12;
+    const weeks = sel.weeks.map((v, i) => ({
+      label: 'Wk ' + (i+1),
+      val: v.toFixed(1),
+      h: Math.max(2, Math.round(v / maxWeek * 104)) + 'px',
+      color: v >= bench ? 'var(--color-accent-700)' : 'var(--color-accent-400)'
+    }));
+
+    const planTotal = this.phases().reduce((n, p) => n + p.items.length, 0);
+    const planDone = this.phases().reduce((n, p) => n + p.items.filter(i => i.done).length, 0);
+
+    const trendRows = tracked.map(l => {
+      const d = l.weeks[3] - l.weeks[0];
+      const db = this.deltaBits(d);
+      const tj = l.trajectory;
+      const st = tj === 'Improving' ? { bg:'var(--color-accent-200)', fg:'var(--color-accent-800)' }
+        : tj === 'Sliding' ? { bg:'var(--color-accent-900)', fg:'var(--color-bg)' }
+        : { bg:'var(--color-neutral-200)', fg:'var(--color-neutral-800)' };
+      return {
+        name: l.name, band: l.band,
+        cells: l.weeks.map(v => ({
+          val: v.toFixed(1),
+          w: Math.round(v / maxWeek * 100) + '%',
+          color: v >= bench ? 'var(--color-accent-600)' : 'var(--color-accent-300)',
+          fg: 'var(--color-text)'
+        })),
+        delta: db.label, deltaFg: db.fg,
+        trajectory: tj, tagBg: st.bg, tagFg: st.fg
+      };
+    });
+
+    return {
+      isRoster: view === 'roster', isPlan: view === 'plan', isTrend: view === 'trend',
+      goRoster: () => this.setState({ view:'roster' }),
+      goPlan: () => this.setState({ view:'plan' }),
+      goTrend: () => this.setState({ view:'trend' }),
+      tabRosterBg: tab('roster').bg, tabRosterFg: tab('roster').fg,
+      tabPlanBg: tab('plan').bg, tabPlanFg: tab('plan').fg,
+      tabTrendBg: tab('trend').bg, tabTrendFg: tab('trend').fg,
+
+      benchLabel: bench.toFixed(1),
+      guardLabel: String(this.guard()),
+      kpiWatch: String(tracked.length),
+      kpiAvg: (all.reduce((n, l) => n + l.avg, 0) / all.length).toFixed(1),
+      kpiImproving: String(tracked.filter(l => l.trajectory === 'Improving').length),
+      kpiDecide: String(tracked.length),
+      buckets,
+
+      filterWatch: this.state.filter === 'watch',
+      filterAll: this.state.filter === 'all',
+      setFilterWatch: () => this.setState({ filter:'watch' }),
+      setFilterAll: () => this.setState({ filter:'all' }),
+
+      rows: rows.map(l => {
+        const db = this.deltaBits(l.delta);
+        return {
+          name: l.name, email: l.email, tenureLabel: l.tenureLabel,
+          target: l.target || '—', ach: String(l.ach), pctAch: l.pctAch,
+          avg: l.avgLabel, deltaLabel: db.label, deltaFg: db.fg,
+          cal: String(l.cal), conv: l.conv ? l.conv + '%' : '—',
+          prod: l.prod ? l.prod.toFixed(1) + 'h' : '—',
+          causeShort: l.cause.short, band: l.band, bandBg: l.bandBg, bandFg: l.bandFg,
+          open: () => this.setState({ view:'plan', selId:l.id })
+        };
+      }),
+
+      sel: {
+        name: sel.name, email: sel.email, city: sel.city, tl: sel.tl, zsm: sel.zsm,
+        tenureLabel: sel.tenureLabel, band: sel.band, bandBg: sel.bandBg, bandFg: sel.bandFg,
+        trajectory: sel.trajectory, target: sel.target || '—', ach: String(sel.ach), pctAch: sel.pctAch,
+        causeTitle: sel.cause.title, causeBody: sel.cause.body,
+        weeks,
+        metrics: [
+          metric('MD+DD per day', sel.avg, bench, sel.avgLabel, bench.toFixed(1)),
+          metric('Live leads', sel.cal, B_CAL, String(sel.cal), String(B_CAL)),
+          metric('Productive hours', sel.prod, B_PROD, sel.prod.toFixed(1) + 'h', B_PROD.toFixed(1) + 'h'),
+          metric('BQL to MD', sel.conv, B_CONV, sel.conv + '%', B_CONV + '%')
+        ]
+      },
+      benchLine: Math.round(bench / maxWeek * 104) + 26 + 'px',
+
+      picker: tracked.map(l => ({
+        name: l.name, avg: l.avgLabel,
+        bg: l.id === sel.id ? 'var(--color-accent)' : 'transparent',
+        fg: l.id === sel.id ? 'var(--color-bg)' : 'var(--color-text)',
+        border: l.id === sel.id ? 'var(--color-accent)' : 'var(--color-divider)',
+        open: () => this.setState({ selId:l.id })
+      })),
+
+      isSprint: this.model() === 'sprint',
+      isCoach: this.model() === 'coach',
+      setSprint: () => this.setState({ model:'sprint' }),
+      setCoach: () => this.setState({ model:'coach' }),
+      planBlurb: this.model() === 'sprint'
+        ? 'Every action carries a target, a current reading and the report it is measured from — nothing here is a judgement call. Four weekly gates at ' + (bench*0.4).toFixed(1) + ', ' + (bench*0.6).toFixed(1) + ', ' + (bench*0.85).toFixed(1) + ' and ' + bench.toFixed(1) + ' MD+DD/day; miss two in a row and the cycle closes early with a decision.'
+        : 'No fixed weeks — one input, tracked from baseline to independence. Each stage exits only on a number: baseline recorded, +25% on the input, 80% of the bar, then ' + bench.toFixed(1) + ' MD+DD/day held solo for five days.',
+      phases: this.phases(),
+      planTotal: String(planTotal), planDone: String(planDone),
+      planPct: Math.round(planDone / planTotal * 100) + '%',
+
+      note: this.state.note,
+      setNote: (e) => this.setState({ note: e.target.value }),
+      decExit: () => this.setState({ decision:'Recorded 08 Aug — cleared the bar, taken off the tracker.' }),
+      decContinue: () => this.setState({ decision:'Recorded 08 Aug — one more cycle, next review 07 Sep.' }),
+      decLeads: () => this.setState({ decision:'Recorded 08 Aug — lead allocation changed, output re-baselined.' }),
+      decPip: () => this.setState({ decision:'Recorded 08 Aug — escalated to formal PIP with HR.' }),
+      decisionLabel: this.state.decision,
+
+      trendKpis: [
+        { label:'Improving', value: String(tracked.filter(l => l.trajectory === 'Improving').length), note:'week 4 above week 1 by 0.5+' },
+        { label:'Flat', value: String(tracked.filter(l => l.trajectory === 'Flat' || l.trajectory === 'Blocked').length), note:'no movement — plan is not landing' },
+        { label:'Sliding', value: String(tracked.filter(l => l.trajectory === 'Sliding').length), note:'going backwards inside the sprint' }
+      ],
+      trendRows
+    };
+  }
+}
+</script>
+</body>
+</html>

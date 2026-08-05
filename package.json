@@ -1,0 +1,28 @@
+{
+  "name": "lrm-performance-tracker",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "next": "^15",
+    "react": "^19",
+    "react-dom": "^19",
+    "next-auth": "^5.0.0-beta",
+    "@prisma/client": "^6",
+    "googleapis": "^144"
+  },
+  "devDependencies": {
+    "prisma": "^6",
+    "typescript": "^5",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19"
+  }
+}
