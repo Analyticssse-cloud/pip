@@ -111,6 +111,8 @@ export async function buildRoster(cluster: string): Promise<{ entries: Entry[]; 
       prod: latest?.productiveHrs ?? 0,
       conv: latest?.bqlToMd ?? 0,
       weeks: bucketWeeks(rows, cycle.startDate),
+      // The sheet's own MD+DD/day (stored on the latest row) drives banding when present.
+      avgPerDayOverride: latest?.mdDdPerDay ?? undefined,
     };
 
     const thresholds: Thresholds = {
