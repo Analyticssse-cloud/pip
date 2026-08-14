@@ -22,10 +22,6 @@ export interface LrmMetrics {
   prod: number;        // productive hours / worked day
   conv: number;        // BQL -> MD %  (may be derived; keep 0 if unknown)
   weeks: [number, number, number, number]; // weekly avg MD+DD/day
-  // When the source already carries a trusted MD+DD/day average (the band sheet's
-  // "MD+DD Avg" column), it wins over ach/workingDays so the banding matches the
-  // number the business reads off the sheet. Left undefined when unknown.
-  avgPerDayOverride?: number;
 }
 
 export interface Thresholds {
@@ -40,8 +36,7 @@ export const BARS = { CAL: 100, PROD: 7.0, CONV: 35, SCORE: 6.3 } as const;
 export type Band = "No action" | "Observe" | "Train" | "PIP / exit" | "Fix allocation";
 
 export function avgPerDay(l: LrmMetrics, t: Thresholds) {
-  if (typeof l.avgPerDayOverride === "number") return l.avgPerDayOverride;
-  return t.workingDays ? l.ach / t.workingDays : 0;
+  return l.ach / t.workingDays;
 }
 
 export function bandOf(l: LrmMetrics, t: Thresholds): Band {
@@ -135,13 +130,12 @@ export const CAUSES: Record<CauseKey, Cause> = {
 
 export function causeOf(l: LrmMetrics): Cause {
   if (l.cal === 0) return CAUSES.allocation;
-  const bars: [CauseKey, number][] = [
+  const ranked: [CauseKey, number][] = [
     ["pipeline", l.cal / BARS.CAL],
     ["hours", l.prod / BARS.PROD],
     ["conversion", l.conv / BARS.CONV],
     ["quality", l.leadScore / BARS.SCORE],
-  ];
-  const ranked = bars.sort((a, b) => a[1] - b[1]);
+  ].sort((a, b) => a[1] - b[1]) as [CauseKey, number][];
   return CAUSES[ranked[0][0]];
 }
 
