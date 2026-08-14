@@ -79,11 +79,41 @@ function parseDateHeader(h: unknown): string | null {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Read the service-account credentials from the environment.
+ *
+ * Accepts the key either base64-encoded or as raw JSON — pasting the raw file
+ * into a dashboard env var is an easy mistake, and `Buffer.from(json,"base64")`
+ * fails obscurely (it silently drops non-base64 characters and decodes the rest
+ * into binary, so the error surfaces as "Unexpected token ... is not valid
+ * JSON" rather than anything pointing at the key).
+ */
+function serviceAccountCredentials(): Record<string, string> {
+  const raw = (process.env.GOOGLE_SERVICE_ACCOUNT_KEY ?? "").trim();
+  if (!raw) throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY is not set");
+
+  const text = raw.startsWith("{")
+    ? raw
+    : Buffer.from(raw, "base64").toString("utf8");
+
+  let parsed: Record<string, string>;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(
+      "GOOGLE_SERVICE_ACCOUNT_KEY is neither valid JSON nor base64-encoded JSON " +
+        `(decoded ${text.length} chars starting "${text.slice(0, 12)}")`
+    );
+  }
+  if (!parsed.client_email || !parsed.private_key) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY is missing client_email / private_key");
+  }
+  return parsed;
+}
+
 function sheetsClient() {
   const auth = new google.auth.GoogleAuth({
-    credentials: JSON.parse(
-      Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY!, "base64").toString("utf8")
-    ),
+    credentials: serviceAccountCredentials(),
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
   return google.sheets({ version: "v4", auth });
