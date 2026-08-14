@@ -1,25 +1,22 @@
-// components/Blueprint.tsx — the design system's square, hairline-bordered,
-// corner-registration-marked card wrapper (docs/handoff/README.md
-// "Design tokens" § the blueprint frame). Every card, KPI tile, and phase
-// panel on the three screens uses this.
+// components/Blueprint.tsx — the wireframe frame every card/figure wears:
+// square, hairline-bordered, with a "+" registration mark in each corner.
 import type { CSSProperties, ReactNode } from "react";
 
 export default function Blueprint({
-  children,
-  style,
-  className,
+  children, style, className, as: Tag = "div",
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   style?: CSSProperties;
   className?: string;
+  as?: "div" | "section" | "article";
 }) {
   return (
-    <div className={["blueprint", className].filter(Boolean).join(" ")} style={style}>
+    <Tag className={`blueprint${className ? " " + className : ""}`} style={style}>
       <i className="corner tl" />
       <i className="corner tr" />
       <i className="corner bl" />
       <i className="corner br" />
       {children}
-    </div>
+    </Tag>
   );
 }

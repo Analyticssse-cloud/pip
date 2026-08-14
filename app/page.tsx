@@ -1,52 +1,32 @@
-// app/page.tsx — the tracker shell: auth guard, load the cluster roster +
-// this cluster's app-owned state, hand it all to the client component.
-// ARCHITECTURE.md §6.
+// app/page.tsx — the authenticated tracker shell (Server Component).
+// Resolves session -> role, loads the cluster, and hands off to the client Shell.
+//
+// DEMO mode: when AUTH_GOOGLE_ID is unset there is no login — the page opens as a
+// manager (TL) with an in-app "Signed in as" switcher so the role model can be demoed.
 import { redirect } from "next/navigation";
-import TrackerShell from "@/components/TrackerShell";
-import { auth } from "@/lib/auth";
-import { buildRoster } from "@/lib/aggregate";
-import { CLUSTER } from "@/lib/cluster";
-import { prisma } from "@/lib/db";
-import type { DecisionInfo } from "@/lib/derive";
-import type { PlanModel } from "@/lib/metrics";
+import Shell from "@/components/Shell";
+import { loadCluster } from "@/lib/data";
+import { AUTH_CONFIGURED, resolveSession, type AppSession } from "@/lib/session";
+import { MANAGER_EMAIL } from "@/lib/sample";
 
-// The roster + this cluster's thresholds are read fresh on every request —
-// never statically prerendered (the auth guard alone would make that
-// meaningless).
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/signin");
+export default async function Page() {
+  const data = await loadCluster();
 
-  const { entries, setting } = await buildRoster(CLUSTER);
-  const cycleIds = entries.map((e) => e.cycleId);
+  let session: AppSession;
 
-  const [planItems, decisions] = cycleIds.length
-    ? await Promise.all([
-        prisma.planItemState.findMany({ where: { cycleId: { in: cycleIds } } }),
-        prisma.cycleDecision.findMany({ where: { cycleId: { in: cycleIds } } }),
-      ])
-    : [[], []];
-
-  const doneMap: Record<string, boolean> = {};
-  for (const p of planItems) doneMap[`${p.cycleId}:${p.model}:${p.phase}:${p.itemKey}`] = p.done;
-
-  const decisionMap: Record<string, DecisionInfo> = {};
-  for (const d of decisions) {
-    decisionMap[d.cycleId] = { outcome: d.outcome, note: d.note, decidedAt: d.decidedAt.toISOString() };
+  if (!AUTH_CONFIGURED) {
+    // Demo: no OAuth configured yet.
+    session = { email: MANAGER_EMAIL, name: "Akshay Shrivant", role: "manager" };
+    return <Shell data={data} session={session} demo />;
   }
 
-  const tlLabel = entries.find((e) => e.metrics.tl && e.metrics.tl !== "—")?.metrics.tl ?? "—";
+  const { auth } = await import("@/lib/auth");
+  const s = await auth();
+  const email = s?.user?.email;
+  if (!email) redirect("/signin");
 
-  return (
-    <TrackerShell
-      cluster={CLUSTER}
-      tlLabel={tlLabel}
-      entries={entries}
-      setting={{ benchmark: setting.benchmark, tenureGuard: setting.tenureGuard, planModel: setting.planModel as PlanModel }}
-      doneMap={doneMap}
-      decisionMap={decisionMap}
-    />
-  );
+  session = resolveSession(email, s?.user?.name ?? email, data.lrms);
+  return <Shell data={data} session={session} demo={false} />;
 }

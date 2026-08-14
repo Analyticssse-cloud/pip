@@ -1,43 +1,28 @@
-// app/signin/page.tsx — Auth.js's configured sign-in page (lib/auth.ts
-// `pages.signIn`). Google login only, restricted server-side to the two
-// company domains (ARCHITECTURE.md §3).
-import { signIn } from "@/lib/auth";
+// app/signin/page.tsx — the sign-in screen (Google, team domains only).
+import { redirect } from "next/navigation";
+import Blueprint from "@/components/Blueprint";
+import { AUTH_CONFIGURED } from "@/lib/session";
 
-export default function SignInPage() {
+export default function SignIn() {
+  if (!AUTH_CONFIGURED) redirect("/"); // demo mode has no login
+
+  async function login() {
+    "use server";
+    const { signIn } = await import("@/lib/auth");
+    await signIn("google", { redirectTo: "/" });
+  }
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        background: "var(--color-bg)",
-        color: "var(--color-text)",
-        fontFamily: "var(--font-body)",
-        padding: 16,
-      }}
-    >
-      <div className="blueprint" style={{ padding: 32, width: 360, maxWidth: "100%", textAlign: "center" }}>
-        <i className="corner tl" />
-        <i className="corner tr" />
-        <i className="corner bl" />
-        <i className="corner br" />
-        <div style={{ fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: 22, marginBottom: 8 }}>
-          LRM Performance Improvement Tracker
+    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
+      <Blueprint style={{ padding: "var(--space-8)", width: "min(420px, 100%)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+        <div>
+          <div style={{ fontFamily: "var(--font-heading)", fontSize: 24 }}>LRM Performance Improvement Tracker</div>
+          <p className="text-muted" style={{ fontSize: 13, marginTop: 6 }}>Sign in with your SolarSquare Google account. Access is limited to the team.</p>
         </div>
-        <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 20 }}>
-          Sign in with your solarsquare.in or homes.solarsquare.in Google account.
-        </p>
-        <form
-          action={async () => {
-            "use server";
-            await signIn("google", { redirectTo: "/" });
-          }}
-        >
-          <button className="btn btn-primary btn-block" type="submit">
-            Sign in with Google
-          </button>
+        <form action={login}>
+          <button type="submit" className="btn btn-primary btn-block">Continue with Google</button>
         </form>
-      </div>
-    </div>
+      </Blueprint>
+    </main>
   );
 }
